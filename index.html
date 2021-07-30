@@ -52,8 +52,8 @@
 
   <p id="mainText">Shorelines of Lake Bonneville are visible above Salt Lake City along the western front of the Wasatch Mountains and on other mountains throughout the Bonneville basin.[3] These shorelines appear as shelves or benches that protrude from the mountainside above the valley floor, are visible on the ground from long distances and on satellite images, and have both depositional and erosional segments along their lengths.[4] Three shorelines of Lake Bonneville that can be traced throughout the basin, have been given names: Stansbury, Bonneville, and Provo.[3] The Stansbury and Bonneville shorelines formed during the transgressive phase of Lake Bonneville; the Provo shoreline formed during the overflowing phase.[5] </p>
 
-  <svg id="graph1" width=1000 height=200></svg>
-  <svg id="graph2" width=1000 height=300></svg>
+  <svg id="rainGraph" width=1000 height=200></svg>
+  <svg id="lakeGraph" width=1000 height=300></svg>
 
   <div>
     <a id="backButton" class="back">&laquo; Back</a>
@@ -63,7 +63,16 @@
 <script>
 
 
+var totalWidth = 1000
+var totalHeight = 300
+const margin = {top: 10, right: 10, bottom: 10, left: 10};
+var width = totalWidth - margin.left - margin.right;
+var height = totalHeight - margin.top - margin.bottom;
+
+
+
 async function init() {
+
 
 
 const x = d3.scaleLog()
@@ -77,7 +86,46 @@ const y = d3.scaleLog()
  .base(10);
 
 
- 
+
+var xLake = d3.scaleTime()
+ .domain([10, 150])
+ .range([0, width]);
+
+var yLake = d3.scaleLinear()
+ .domain([4190, 4290])
+ .range([height, 0]);
+
+
+const lakeData = await d3.csv("/data/lake_data_pivoted.csv");
+
+var lakeSVG = d3.select("#lakeGraph")
+  .append("g")
+  .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+lakeSVG.append("g")
+  .attr("transform", "translate(50,50)")
+  .call(d3.axisLeft(y)
+   .tickFormat(d3.format("~s"))
+   .tickValues([10, 20, 50, 100]));
+
+lakeSVG.append("g")
+  .attr("transform", "translate(0," + height + ")")
+  .call(d3.axisBottom(xLake))
+
+lakeSVG.append("g")
+  .call(d3.axisLeft(yLake))
+
+lakeSvg.append("path")
+  .datum(lakeData)
+  .attr("fill", "none")
+  .attr("stroke", "steelblue")
+  .attr("stroke-width", 1.5)
+  .attr("d", d3.line()
+    .x(function(d) { return xLake(d.monthDay); })
+    .y(function(d) { return yLake(d.average); }));
+    
+
+
 
 const baseSVG = d3.select("svg");
 
