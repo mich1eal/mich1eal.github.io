@@ -9,40 +9,54 @@
     }
   h1 {margin-bottom: 10px;}
   h2 {
-    color: grey; 
+    color: steelblue; 
     margin-top:  0px;
-    margin-bottom: 30px;
+    margin-bottom: 10px;
     font-weight:normal;
   }
+  .ref {
+    color: grey; 
+    margin-top:  0px;
+    margin-bottom: 0px;
+    font-size:smaller;
+  }
 
-  a {
+  .button {
+  border-radius: 4px;
   text-decoration: none;
   display: inline-block;
   padding: 8px 16px;
+  background-color: steelblue;
+  color: white;
+  border: none;
   }
 
-  a:hover {
-    background-color: #ddd;
+  .button:hover:not([disabled]) {
+    background-color: lightsteelblue;
     color: black;
   }
 
-  .continue {
-  background-color: #f1f1f1;
-  color: black;
-  float:  right;
+  .button:active {
+    background-color: lightgrey;
   }
 
-  .back {
-    background-color: #f1f1f1;
-    color: black;
+  .button:disabled,
+  .button[disabled] {
+    background-color: lightgrey;
+
   }
 
-  circle {fill: lightblue; stroke: black;} 
+  .fader{
+    transition:visibility 1s, opacity 1s; 
+    visibility: hidden;
+    opacity:  0;
+  }
+
+\
 </style>
 
 
 <!-- html description of entire page -->
-
 
 <head><title>Fresh Water in a Salty Lake</title></head>
 
@@ -50,117 +64,171 @@
   <h1>Fresh Water in a Salty Lake</h1>
   <h2>A visualization of water accumulation in the Great Salt Lake</h2>
 
-  <p id="mainText">Shorelines of Lake Bonneville are visible above Salt Lake City along the western front of the Wasatch Mountains and on other mountains throughout the Bonneville basin.[3] These shorelines appear as shelves or benches that protrude from the mountainside above the valley floor, are visible on the ground from long distances and on satellite images, and have both depositional and erosional segments along their lengths.[4] Three shorelines of Lake Bonneville that can be traced throughout the basin, have been given names: Stansbury, Bonneville, and Provo.[3] The Stansbury and Bonneville shorelines formed during the transgressive phase of Lake Bonneville; the Provo shoreline formed during the overflowing phase.[5] </p>
-
-  <svg id="rainGraph" width=1000 height=200></svg>
-  <div id="lakeGraph" width=1000 height=200></div>
-
   <div>
-    <a id="backButton" class="back">&laquo; Back</a>
-    <a id="continueButton" class="continue">Continue &raquo;</a>
+    <button class="button" id="buttonBack" onclick="sceneBack()" >&laquo; Back</a>
+    <button class="button" id="buttonContinue" onclick="sceneForward()" style="float: right;" >Continue &raquo;</a>
   </div>
 
+
+  <p id="scene0Text">In much of the world, rainwater and snowmelt flow downhill until they reach the ocean. Northern Utah is unusual - all precipitation eventually collects in the Great Salt Lake. The lake has no outflow, so water can only leave the Great Salt Lake through evaporation.</p>
+
+  <p class=fader id="scene1Text">Weather in northern Utah is highly seasonal. During the winter, the Salt Lake Valley and the surrounding mountains receive significant amounts of snow. Summers tend to be hot and sunny, with only occasional precipitation.</p>
+
+  <p class=fader id="scene2Text">As a result, the amount of water contained in the Great Salt Lake changes significantly with the weather.</p>
+
+  <p class=fader id="scene3Text">Use the Dropdown below to explore how the lake changes each year. Hover over the graphs for additional information.</p>
+
+  <div>
+    <div class=fader id="rainGraph" width=1000 height=250>
+      <p id="rainGraphTitle"><b>Northern Utah Daily Weather [Averaged, 2000-2019]</b></p>
+    </div>
+
+    <div class=fader id="lakeGraph" width=1000 height=250>
+      <p id="lakeGraphTitle"><b>Great Salt Lake Surface Elevation [Averaged, 2000-2019]</b></p>
+    </div>
+  </div>
+
+  <div class=fader id="refDiv" width=1000 height=20>
+    <p class=ref>1) National Oceanic and Atmospheric Administration, Global Historical Climatology Network, accessed July 2021.</p>
+    <p class=ref>2) United States Geological Survey, National Water Information System, accessed July 2021.</p>
+  </div>
 <script>
 
+const margin = {top: 30, right: 40, bottom: 40, left: 40};
 
-var totalWidth = 1000
-var totalHeight = 200
-const margin = {top: 20, right: 20, bottom: 40, left: 50};
-var width = totalWidth - margin.left - margin.right;
-var height = totalHeight - margin.top - margin.bottom;
+const totalWidth = 1000
+const totalHeight = 250
+const width = totalWidth - margin.left - margin.right;
+const height = totalHeight - margin.top - margin.bottom;
 
-lakeDomain = [new Date('2021-01-01'), new Date('2021-12-31')]
+var scene = 0;
+const sceneCount = 3;
+
+// Domain for lakeGraph
+const lakeDomain = [new Date('2021-01-01'), new Date('2021-12-31')]
+
+//Graphs to be swapped in position
+const swapList = [document.getElementById("rainGraph"), document.getElementById("lakeGraph")]
+
+
+
+function sceneForward()
+{
+  changeScene(scene + 1);
+}
+
+function sceneBack()
+{
+  changeScene(scene - 1);
+}
+
+function changeScene(newScene)
+{
+  //error checking 
+  if (newScene < 0) newScene = 0;
+  if (newScene > sceneCount) newScene = sceneCount;
+
+  //disable buttons if they cant be pressed 
+  document.getElementById("buttonBack").disabled = newScene == 0; 
+  document.getElementById("buttonContinue").disabled = newScene == sceneCount; 
+
+
+  // Control when text appears
+  document.getElementById("scene1Text").style.visibility = newScene >= 1 ? "visible" : "hidden";
+  document.getElementById("scene1Text").style.opacity = newScene >= 1 ? 100 : 0;
+
+  document.getElementById("scene2Text").style.visibility = newScene >= 2 ? "visible" : "hidden";
+  document.getElementById("scene2Text").style.opacity = newScene >= 2 ? 100 : 0;
+
+  document.getElementById("scene3Text").style.visibility = newScene >= 3 ? "visible" : "hidden";
+  document.getElementById("scene3Text").style.opacity = newScene >= 3 ? 100 : 0;
+
+
+  // Control when graphs appear 
+  document.getElementById("rainGraph").style.visibility = newScene >= 1 ? "visible" : "hidden";
+  document.getElementById("rainGraph").style.opacity = newScene >= 1 ? 100 : 0;
+
+  document.getElementById("lakeGraph").style.visibility = newScene >= 2 ? "visible" : "hidden";
+  document.getElementById("lakeGraph").style.opacity = newScene >= 2 ? 100 : 0;
+
+
+  // Refs only appear at end
+  document.getElementById("refDiv").style.visibility = newScene == sceneCount ? "visible" : "hidden";
+  document.getElementById("refDiv").style.opacity = newScene == sceneCount ? 100 : 0;
+
+  console.log("Changing from scene " + scene + " to scene " + newScene);
+
+  scene = newScene;
+}
 
 
 
 async function init() {
+  changeScene(0)
+
+
+  const x = d3.scaleLog()
+   .domain([10, 150])
+   .range([0, 200])
+   .base(10);
+
+  const y = d3.scaleLog()
+   .domain([10, 150])
+   .range([200, 0])
+   .base(10);
 
 
 
-const x = d3.scaleLog()
- .domain([10, 150])
- .range([0, 200])
- .base(10);
+  var xLake = d3.scaleTime()
+   .domain(lakeDomain)
+   .range([0, width])
+  var xAxisLake = d3.axisBottom(xLake)
+    .tickFormat(d3.timeFormat("%b"));
 
-const y = d3.scaleLog()
- .domain([10, 150])
- .range([200, 0])
- .base(10);
-
-
-
-var xLake = d3.scaleTime()
- .domain(lakeDomain)
- .range([0, width]);
-
-var yLake = d3.scaleLinear()
- .domain([4190, 4290])
- .range([height, 0]);
-
-const lakeSVG = d3.select("#lakeGraph")
-  .append("svg")
-  .attr("width", totalWidth)
-  .attr("height", totalHeight)
-  .append("g")
-    .attr("transform",
-          "translate(" + margin.left + "," + margin.top + ")");
-const lakeData = await d3.csv("https://mich1eal.github.io/data/lake_data_pivoted.csv");
-console.log(lakeData)
-
-lakeSVG.append("g")
-  .attr("transform", "translate(0," + height + ")")
-  .call(d3.axisBottom(xLake))
-
-lakeSVG.append("g")
-  .call(d3.axisLeft(yLake))
-
-lakeSVG.append("path")
-  .datum(lakeData)
-  .attr("fill", "none")
-  .attr("stroke", "steelblue")
-  .attr("stroke-width", 1.5)
-  .attr("d", d3.line()
-    .x(function(d) { return xLake(new Date(d.monthday)); })
-    .y(function(d) { return yLake(parseFloat(d.average)); }));
+  var yLake = d3.scaleLinear()
+   .domain([4192, 4203])
+   .range([height, 0]);
+  var yAxisLake = d3.axisLeft(yLake);
 
 
-var test = "2021-01-01";
-console.log(test);
-var testDate = Date.UTC("2021-01-01");
-console.log(testDate);
-console.log(testDate);  
+  const lakeSVG = d3.select("#lakeGraph")
+    .append("svg")
+    .attr("width", totalWidth)
+    .attr("height", totalHeight);
 
+  const lakeData = await d3.csv("https://mich1eal.github.io/data/lake_data_pivoted.csv");
 
+  lakeSVG.append("g")
+    .attr("transform", "translate(" + margin.left + "," + (height + margin.top) + ")")
+    .call(xAxisLake)
 
-const baseSVG = d3.select("svg");
+  lakeSVG.append("text")
+    .attr("x", 0)
+    .attr("y", margin.top - 15)
+    .text("↑ Elevation (ft)");
 
-const data = await d3.csv("https://mich1eal.github.io/data/cars2017.csv");
+  lakeSVG.append("g")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
+    .call(yAxisLake)
 
-console.log(data)
+  lakeSVG.append("text")
+    .attr("x", totalWidth - 10)
+    .attr("y", totalHeight - 10)
+    .attr("text-anchor", "end")
+    .text("Month →");
 
-baseSVG.append("g")
-.attr("transform", "translate(50,50)")
-   .selectAll("circle")
-   .data(data)
-   .enter()
-   .append("circle")
-   .attr("cx", function(d){return x(d.AverageCityMPG);})
-   .attr("cy", function(d){return y(d.AverageHighwayMPG);})
-   .attr("r", function(d){return 2 + parseInt(d.EngineCylinders);});
+  lakeSVG.append("path")
+    .datum(lakeData)
+    .attr("fill", "none")
+    .attr("stroke", "steelblue")
+    .attr("stroke-width", 1.5)
+    .attr("d", d3.line()
+      .x(function(d) { return margin.left + xLake(new Date(Date.UTC(2021, d.month-1, d.day, 0, 0, 0, 0))); })
+      .y(function(d) { return margin.top + yLake(parseFloat(d.average)); }));
 
-baseSVG.append("g")
-  .attr("transform", "translate(50,50)")
-  .call(d3.axisLeft(y)
-   .tickFormat(d3.format("~s"))
-   .tickValues([10, 20, 50, 100]));
-
-baseSVG.append("g")
-  .attr("transform", "translate(50,250)")
-  .call(d3.axisBottom(x)
-   .tickFormat(d3.format("~s"))
-   .tickValues([10, 20, 50, 100]));
-  
-
+  var testDate = new Date(Date.UTC(2021, 1, 1));
+  console.log(testDate);
+  console.log(testDate.toUTCString());
 }
 </script>
 </body>
