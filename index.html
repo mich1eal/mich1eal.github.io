@@ -1,12 +1,12 @@
 <html>
 <script src='https://d3js.org/d3.v5.min.js'></script>
-<script src='https://github.com/susielu/d3-annotation/blob/master/d3-annotation.js'></script>
+<script src='https://mich1eal.github.io/lib/d3-annotation.js'></script>
 
 <style> 
   body {
     font-family:  Tahoma, sans-serif;
     width: 1200px;
-    padding: 30px;
+    padding: 10px;
     margin: auto;
     }
   h1 {
@@ -79,17 +79,18 @@
     <button class="button" id="buttonContinue" onclick="sceneForward()" style="float: right;" >Continue &raquo;</a>
   </div>
 
-  <p id="scene0Text">In much of the world, rainwater and snowmelt flow downhill until they reach the ocean. Northern Utah is unusual - all precipitation eventually collects in the Great Salt Lake. The lake has no outflow, so water can only leave the Great Salt Lake through evaporation.</p>
+  <p id="scene0Text">In much of the world, rainwater and snowmelt flow downhill until they reach the ocean. Northern Utah is unusual - all precipitation collects in the Great Salt Lake. The lake has no outflow, so water can only leave the Great Salt Lake through evaporation.</p>
 
-  <p class=fader id="scene1Text">Weather in northern Utah is highly seasonal. During the winter, the Salt Lake Valley and the surrounding mountains receive significant amounts of snow. Summers tend to be hot and sunny, with only occasional precipitation.</p>
+  <p class=fader id="scene1Text">During the winter, the Salt Lake Valley and the surrounding mountains receive significant amounts of snow. Summers tend to be hot and sunny, with only occasional precipitation.</p>
 
-  <p class=fader id="scene2Text">As a result, the amount of water contained in the Great Salt Lake changes significantly with the weather.</p>
+  <p class=fader id="scene3Text">Select a year to explore how the lake has changed each year. Hover over the graphs for additional information.    Display data: 
+    <select id="selectButton"></select>
 
-  <p class=fader id="scene3Text">Use the Dropdown below to explore how the lake changes each year. Hover over the graphs for additional information.</p>
+  </p>
 
   <div>
     <div class=fader id="rainGraph" width=1000 height=250>
-      <p id="rainGraphTitle"><b>Daily Weather [Averaged, 2000-2019]</b></p>
+      <p id="rainGraphTitle"><b>Daily Snow Accumulation (dashed) and Precipitation (solid) [Averaged, 2000-2019]</b></p>
     </div>
 
     <div class=fader id="lakeGraph" width=1000 height=250>
@@ -98,8 +99,7 @@
   </div>
 
   <div class=fader id="refDiv" width=1000 height=20>
-    <p class=ref>1) National Oceanic and Atmospheric Administration, Global Historical Climatology Network, accessed July 2021.</p>
-    <p class=ref>2) United States Geological Survey, National Water Information System, accessed July 2021.</p>
+    <p class=ref>Sources: National Oceanic and Atmospheric Administration, Global Historical Climatology Network. United States Geological Survey, National Water Information System, accessed July 2021.</p>
   </div>
 <script>
 
@@ -110,11 +110,29 @@ const totalHeight = 300
 const width = totalWidth - margin.left - margin.right;
 const height = totalHeight - margin.top - margin.bottom;
 
-var scene = 0;
-const sceneCount = 3;
 
 // Domain for lakeGraph
 const lakeDomain = [new Date('2021-01-01'), new Date('2021-12-31')]
+
+//scales and axes
+var x = d3.scaleTime()
+ .domain(lakeDomain)
+ .range([0, width])
+var xAxis = d3.axisBottom(x)
+  .tickFormat(d3.timeFormat("%b"));
+
+var yLake = d3.scaleLinear()
+ .domain([4192, 4203])
+ .range([height, 0]);
+var yAxisLake = d3.axisLeft(yLake);
+
+var yRain = d3.scaleLinear()
+ .domain([0, 10])
+ .range([height, 0]);
+var yAxisRain = d3.axisLeft(yRain);
+
+var scene = 0;
+const sceneCount = 3;
 
 //Graphs to be swapped in position
 const swapList = [document.getElementById("rainGraph"), document.getElementById("lakeGraph")]
@@ -122,27 +140,20 @@ const swapList = [document.getElementById("rainGraph"), document.getElementById(
 //Annotations
 const rainAnnotations = [{
   note: {
-    label: "Heavy snow storms (especially in the mountains)",
-    title: "Snowy Winter"
+    label: "Snowy mountain winter",
   },
-  //can use x, y directly instead of data
-  x: 100,
-  y:100,
-  dy: 137,
-  dx: 162,
-  subject: { radius: 50, radiusPadding: 10 },
+  x:250,
+  y:200,
+  dy:-50,
+  dx: 100,
 },{
   note: {
-      label: "A hot summer with only scattered rain",
-      title: "Dry Summer"
+      label: "Hot summer with only scattered rain",
     },
-    //can use x, y directly instead of data
-    data: { date: "1-Jul-2021", close: 185.02 },
-    x: 200,
-    y:200,
-    dy: 137,
-    dx: 162,
-    subject: { radius: 50, radiusPadding: 10 },
+    x: 600,
+    y: 275,
+    dy: -50,
+    dx: 100,
   }];
 
 const makeRainAnnotations = d3.annotation()
@@ -150,8 +161,74 @@ const makeRainAnnotations = d3.annotation()
   .type(d3.annotationCalloutElbow)
   .annotations(rainAnnotations)
 
+//Annotations
+const lakeAnnotations = [{
+  note: {
+    label: "Snowmelt slowly accumulates",
+  },
+  x:200,
+  y:188,
+  dy:-50,
+  dx: 100,
+},{
+  note: {
+      label: "High temperatures evaporate excess water",
+    },
+    x: 600,
+    y: 175,
+    dy: -50,
+    dx: 100,
+  }];
+
+  const makeLakeAnnotations = d3.annotation()
+  .notePadding(15)
+  .type(d3.annotationCalloutElbow)
+  .annotations(lakeAnnotations)
+
+//Called whenever new data is selected for graphs
+function updateGraphs(selectedOption, lakeData, slcRainData, altaRainData)
+{
+  console.log("updating graphs to " + selectedOption)
 
 
+  //Update lines
+  lakeLine.datum(lakeData)
+    .transition()
+    .duration(1000)
+    .attr("d", d3.line()
+      .x(function(d) { return margin.left + x(new Date(Date.UTC(2021, d.month-1, d.day, 0, 0, 0, 0))); })
+      .y(function(d) { return margin.top + yLake(parseFloat(d[selectedOption])); }));
+
+  slcRainLine.datum(slcRainData)
+    .transition()
+    .duration(1000)
+    .attr("d", d3.line()
+      .x(function(d) {return margin.left + x(new Date(Date.UTC(2021, d.month-1, d.day, 0, 0, 0, 0))); })
+      .y(function(d) {return margin.top + yRain(parseFloat(d["prcp_" + selectedOption])); }));
+
+  slcSnowLine.datum(slcRainData)
+    .transition()
+    .duration(1000)
+    .attr("d", d3.line()
+      .x(function(d) {return margin.left + x(new Date(Date.UTC(2021, d.month-1, d.day, 0, 0, 0, 0))); })
+      .y(function(d) {return margin.top + yRain(parseFloat(d["snow_" + selectedOption])); }));
+
+  altaRainLine.datum(altaRainData)
+    .transition()
+    .duration(1000)
+    .attr("d", d3.line()
+      .x(function(d) {return margin.left + x(new Date(Date.UTC(2021, d.month-1, d.day, 0, 0, 0, 0))); })
+      .y(function(d) {return margin.top + yRain(parseFloat(d["prcp_" + selectedOption])); }));
+
+  altaSnowLine.datum(altaRainData)
+    .transition()
+    .duration(1000)
+    .attr("d", d3.line()
+      .x(function(d) {return margin.left + x(new Date(Date.UTC(2021, d.month-1, d.day, 0, 0, 0, 0))); })
+      .y(function(d) {return margin.top + yRain(parseFloat(d["snow_" + selectedOption])); }));
+
+
+}
 
 
 function sceneForward()
@@ -179,9 +256,6 @@ function changeScene(newScene)
   document.getElementById("scene1Text").style.visibility = newScene >= 1 ? "visible" : "hidden";
   document.getElementById("scene1Text").style.opacity = newScene >= 1 ? 100 : 0;
 
-  document.getElementById("scene2Text").style.visibility = newScene >= 2 ? "visible" : "hidden";
-  document.getElementById("scene2Text").style.opacity = newScene >= 2 ? 100 : 0;
-
   document.getElementById("scene3Text").style.visibility = newScene >= 3 ? "visible" : "hidden";
   document.getElementById("scene3Text").style.opacity = newScene >= 3 ? 100 : 0;
 
@@ -192,6 +266,13 @@ function changeScene(newScene)
 
   document.getElementById("lakeGraph").style.visibility = newScene >= 2 ? "visible" : "hidden";
   document.getElementById("lakeGraph").style.opacity = newScene >= 2 ? 100 : 0;
+
+  // Control when annotations appear 
+  document.getElementById("rainAnnonId").style.visibility = newScene == 1 ? "visible" : "hidden";
+  document.getElementById("rainAnnonId").style.opacity = newScene == 1 ? 100 : 0;
+
+  document.getElementById("lakeAnnonId").style.visibility = newScene == 2 ? "visible" : "hidden";
+  document.getElementById("lakeAnnonId").style.opacity = newScene == 2 ? 100 : 0;
 
 
   // Refs only appear at end
@@ -204,27 +285,11 @@ function changeScene(newScene)
 }
 
 
-
 async function init() {
-  changeScene(0)
 
-  //scales and axes
-  var x = d3.scaleTime()
-   .domain(lakeDomain)
-   .range([0, width])
-  var xAxis = d3.axisBottom(x)
-    .tickFormat(d3.timeFormat("%b"));
-
-  var yLake = d3.scaleLinear()
-   .domain([4192, 4203])
-   .range([height, 0]);
-  var yAxisLake = d3.axisLeft(yLake);
-
-  var yRain = d3.scaleLinear()
-   .domain([0, 10])
-   .range([height, 0]);
-  var yAxisRain = d3.axisLeft(yRain);
-
+  const lakeData = await d3.csv("https://mich1eal.github.io/data/lake_data_pivoted.csv");
+  const slcRainData = await d3.csv("https://mich1eal.github.io/data/weather_slc_pivoted.csv");
+  const altaRainData = await d3.csv("https://mich1eal.github.io/data/weather_alta_pivoted.csv");
 
 //svgs
   const lakeSVG = d3.select("#lakeGraph")
@@ -236,13 +301,6 @@ async function init() {
     .append("svg")
     .attr("width", totalWidth)
     .attr("height", totalHeight);
-
-
-  const lakeData = await d3.csv("https://mich1eal.github.io/data/lake_data_pivoted.csv");
-  const slcRainData = await d3.csv("https://mich1eal.github.io/data/weather_slc_pivoted.csv");
-  const altaRainData = await d3.csv("https://mich1eal.github.io/data/weather_alta_pivoted.csv");
-
-  console.log(slcRainData)
 
 //////////////////// Graph -  Lake
 //Axes
@@ -266,8 +324,8 @@ async function init() {
     .text("Month →");
 
 //Plot
-  lakeSVG.append("path")
-    .datum(lakeData)
+  lakeLine = lakeSVG.append("path");
+  lakeLine.datum(lakeData)
     .attr("fill", "none")
     .attr("stroke", "steelblue")
     .attr("stroke-width", 1.5)
@@ -302,8 +360,8 @@ async function init() {
     .text("Month →");
 
 //Plot
-  rainSVG.append("path")
-    .datum(slcRainData)
+  slcRainLine = rainSVG.append("path");
+  slcRainLine.datum(slcRainData)
     .attr("fill", "none")
     .attr("stroke", "steelblue")
     .attr("stroke-width", 1.5)
@@ -311,8 +369,8 @@ async function init() {
       .x(function(d) {return margin.left + x(new Date(Date.UTC(2021, d.month-1, d.day, 0, 0, 0, 0))); })
       .y(function(d) {return margin.top + yRain(parseFloat(d.prcp_average)); }));
   
-  rainSVG.append("path")
-    .datum(slcRainData)
+  slcSnowLine = rainSVG.append("path");
+  slcSnowLine.datum(slcRainData)
     .attr("fill", "none")
     .attr("stroke", "lightsteelblue")
     .style("stroke-dasharray", ("3, 3"))
@@ -321,8 +379,8 @@ async function init() {
       .x(function(d) {return margin.left + x(new Date(Date.UTC(2021, d.month-1, d.day, 0, 0, 0, 0))); })
       .y(function(d) {return margin.top + yRain(parseFloat(d.snow_average)); }));
 
-  rainSVG.append("path")
-    .datum(altaRainData)
+  altaRainLine = rainSVG.append("path");
+  altaRainLine.datum(altaRainData)
     .attr("fill", "none")
     .attr("stroke", "orange")
     .attr("stroke-width", 1.5)
@@ -330,8 +388,8 @@ async function init() {
       .x(function(d) {return margin.left + x(new Date(Date.UTC(2021, d.month-1, d.day, 0, 0, 0, 0))); })
       .y(function(d) {return margin.top + yRain(parseFloat(d.prcp_average)); }));
   
-  rainSVG.append("path")
-    .datum(altaRainData)
+  altaSnowLine = rainSVG.append("path");
+  altaSnowLine.datum(altaRainData)
     .attr("fill", "none")
     .attr("stroke", "darkorange")
     .style("stroke-dasharray", ("3, 3"))
@@ -340,15 +398,50 @@ async function init() {
       .x(function(d) {return margin.left + x(new Date(Date.UTC(2021, d.month-1, d.day, 0, 0, 0, 0))); })
       .y(function(d) {return margin.top + yRain(parseFloat(d.snow_average)); }));
 
+  //legend
+
+  legend = rainSVG.append("g")
+      .attr("transform", "translate(900, 25)")
+    legend.append("circle").attr("cx",0).attr("cy",0).attr("r", 6).style("fill", "steelblue")
+    legend.append("circle").attr("cx",0).attr("cy",30).attr("r", 6).style("fill", "orange")
+    legend.append("text").attr("x", 20).attr("y", 0).text("SLC Airport (altitude: 4,226 ft)").style("font-size", "15px").attr("alignment-baseline","middle")
+    legend.append("text").attr("x", 20).attr("y", 30).text("Alta Ski Resort (altitude: 8,530 ft").style("font-size", "15px").attr("alignment-baseline","middle")
+
+
 //annotations 
   rainSVG.append("g")
+    .attr("id", "rainAnnonId")
     .attr("class", "rainAnnotations")
-    .call(makeAnnotations)
+    .attr("class", "fader")
+    .call(makeRainAnnotations)
 
+  lakeSVG.append("g")
+    .attr("id", "lakeAnnonId")
+    .attr("class", "lakeAnnotations")
+    .attr("class", "fader")
+    .call(makeLakeAnnotations)
 
+    //selectButton
 
+  var selectData = ['average', '2000', '2001', '2002', '2003', '2004', '2005', '2006', '2007', '2009', '2010', '2011', '2012', '2013', '2014', '2015', '2016', '2017', '2018', '2019'];
 
+  // add the options to the button
+  d3.select("#selectButton")
+    .selectAll('myOptions')
+    .data(selectData)
+    .enter()
+    .append('option')
+    .text(function (d) { return d; })
+    .attr("value", function (d) { return d; });
+  d3.select("#selectButton")  
+    .on("change", function(d) {
+        var selectedOption = d3.select(this).property("value");
+        updateGraphs(selectedOption, lakeData, slcRainData, altaRainData);
+      });
 
+  // add tooltip
+
+changeScene(0);
 
 }
 </script>
