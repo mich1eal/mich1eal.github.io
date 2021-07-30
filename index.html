@@ -1,19 +1,29 @@
 <html>
 <script src='https://d3js.org/d3.v5.min.js'></script>
+<script src='https://github.com/susielu/d3-annotation/blob/master/d3-annotation.js'></script>
+
 <style> 
   body {
     font-family:  Tahoma, sans-serif;
-    width: 1000px;
-    padding: 50px;
+    width: 1200px;
+    padding: 30px;
     margin: auto;
     }
-  h1 {margin-bottom: 10px;}
+  h1 {
+    margin-bottom: 0px;
+  }
   h2 {
     color: steelblue; 
     margin-top:  0px;
     margin-bottom: 10px;
     font-weight:normal;
   }
+
+  p {
+    padding-top: 10px;
+    margin: 0px; /* between paragraphs */
+  }
+
   .ref {
     color: grey; 
     margin-top:  0px;
@@ -69,7 +79,6 @@
     <button class="button" id="buttonContinue" onclick="sceneForward()" style="float: right;" >Continue &raquo;</a>
   </div>
 
-
   <p id="scene0Text">In much of the world, rainwater and snowmelt flow downhill until they reach the ocean. Northern Utah is unusual - all precipitation eventually collects in the Great Salt Lake. The lake has no outflow, so water can only leave the Great Salt Lake through evaporation.</p>
 
   <p class=fader id="scene1Text">Weather in northern Utah is highly seasonal. During the winter, the Salt Lake Valley and the surrounding mountains receive significant amounts of snow. Summers tend to be hot and sunny, with only occasional precipitation.</p>
@@ -94,9 +103,9 @@
   </div>
 <script>
 
-const margin = {top: 30, right: 40, bottom: 40, left: 40};
+const margin = {top: 30, right: 40, bottom: 20, left: 40};
 
-const totalWidth = 1000
+const totalWidth = 1200
 const totalHeight = 300
 const width = totalWidth - margin.left - margin.right;
 const height = totalHeight - margin.top - margin.bottom;
@@ -109,6 +118,39 @@ const lakeDomain = [new Date('2021-01-01'), new Date('2021-12-31')]
 
 //Graphs to be swapped in position
 const swapList = [document.getElementById("rainGraph"), document.getElementById("lakeGraph")]
+
+//Annotations
+const rainAnnotations = [{
+  note: {
+    label: "Heavy snow storms (especially in the mountains)",
+    title: "Snowy Winter"
+  },
+  //can use x, y directly instead of data
+  x: 100,
+  y:100,
+  dy: 137,
+  dx: 162,
+  subject: { radius: 50, radiusPadding: 10 },
+},{
+  note: {
+      label: "A hot summer with only scattered rain",
+      title: "Dry Summer"
+    },
+    //can use x, y directly instead of data
+    data: { date: "1-Jul-2021", close: 185.02 },
+    x: 200,
+    y:200,
+    dy: 137,
+    dx: 162,
+    subject: { radius: 50, radiusPadding: 10 },
+  }];
+
+const makeRainAnnotations = d3.annotation()
+  .notePadding(15)
+  .type(d3.annotationCalloutElbow)
+  .annotations(rainAnnotations)
+
+
 
 
 
@@ -179,7 +221,7 @@ async function init() {
   var yAxisLake = d3.axisLeft(yLake);
 
   var yRain = d3.scaleLinear()
-   .domain([0, 2])
+   .domain([0, 10])
    .range([height, 0]);
   var yAxisRain = d3.axisLeft(yRain);
 
@@ -209,8 +251,8 @@ async function init() {
     .call(xAxis)
 
   lakeSVG.append("text")
-    .attr("x", 0)
-    .attr("y", margin.top - 15)
+    .attr("x", 15)
+    .attr("y", margin.top - 10)
     .text("↑ Elevation (ft)");
 
   lakeSVG.append("g")
@@ -219,7 +261,7 @@ async function init() {
 
   lakeSVG.append("text")
     .attr("x", totalWidth - 10)
-    .attr("y", totalHeight - 10)
+    .attr("y", totalHeight)
     .attr("text-anchor", "end")
     .text("Month →");
 
@@ -234,6 +276,10 @@ async function init() {
       .y(function(d) { return margin.top + yLake(parseFloat(d.average)); }));
 
 
+
+
+
+
 //////////////////// Graph - Rain
 //Axes
   rainSVG.append("g")
@@ -241,8 +287,8 @@ async function init() {
     .call(xAxis)
 
   rainSVG.append("text")
-    .attr("x", 0)
-    .attr("y", margin.top - 15)
+    .attr("x", 15)
+    .attr("y", margin.top - 10)
     .text("↑ Precipitation (in)");
 
   rainSVG.append("g")
@@ -251,7 +297,7 @@ async function init() {
 
   rainSVG.append("text")
     .attr("x", totalWidth - 10)
-    .attr("y", totalHeight - 10)
+    .attr("y", totalHeight)
     .attr("text-anchor", "end")
     .text("Month →");
 
@@ -293,6 +339,16 @@ async function init() {
     .attr("d", d3.line()
       .x(function(d) {return margin.left + x(new Date(Date.UTC(2021, d.month-1, d.day, 0, 0, 0, 0))); })
       .y(function(d) {return margin.top + yRain(parseFloat(d.snow_average)); }));
+
+//annotations 
+  rainSVG.append("g")
+    .attr("class", "rainAnnotations")
+    .call(makeAnnotations)
+
+
+
+
+
 
 }
 </script>
