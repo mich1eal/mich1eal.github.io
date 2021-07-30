@@ -190,6 +190,22 @@ function updateGraphs(selectedOption, lakeData, slcRainData, altaRainData)
 {
   console.log("updating graphs to " + selectedOption)
 
+  if (selectedOption == "average")
+  {
+    titleStr = "[Averaged, 2000-2019]";
+  }
+  else
+  {
+    titleStr = "[" + selectedOption + "]";
+  }
+
+  rainStr = "<b>Daily Snow Accumulation (dashed) and Precipitation (solid) " + titleStr +"</b>";
+  lakeStr = "<b>Great Salt Lake Surface Elevation " + titleStr+"</b>";
+
+  console.log(rainStr)
+
+  document.getElementById("rainGraphTitle").innerHTML = rainStr;
+  document.getElementById("lakeGraphTitle").innerHTML = lakeStr;
 
   //Update lines
   lakeLine.datum(lakeData)
