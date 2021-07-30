@@ -80,7 +80,7 @@
 
   <div>
     <div class=fader id="rainGraph" width=1000 height=250>
-      <p id="rainGraphTitle"><b>Northern Utah Daily Weather [Averaged, 2000-2019]</b></p>
+      <p id="rainGraphTitle"><b>Daily Weather [Averaged, 2000-2019]</b></p>
     </div>
 
     <div class=fader id="lakeGraph" width=1000 height=250>
@@ -166,23 +166,11 @@ function changeScene(newScene)
 async function init() {
   changeScene(0)
 
-
-  const x = d3.scaleLog()
-   .domain([10, 150])
-   .range([0, 200])
-   .base(10);
-
-  const y = d3.scaleLog()
-   .domain([10, 150])
-   .range([200, 0])
-   .base(10);
-
-
-
-  var xLake = d3.scaleTime()
+  //scales and axes
+  var x = d3.scaleTime()
    .domain(lakeDomain)
    .range([0, width])
-  var xAxisLake = d3.axisBottom(xLake)
+  var xAxis = d3.axisBottom(x)
     .tickFormat(d3.timeFormat("%b"));
 
   var yLake = d3.scaleLinear()
@@ -190,17 +178,34 @@ async function init() {
    .range([height, 0]);
   var yAxisLake = d3.axisLeft(yLake);
 
+  var yRain = d3.scaleLinear()
+   .domain([0, 2])
+   .range([height, 0]);
+  var yAxisRain = d3.axisLeft(yRain);
 
+
+//svgs
   const lakeSVG = d3.select("#lakeGraph")
     .append("svg")
     .attr("width", totalWidth)
     .attr("height", totalHeight);
 
-  const lakeData = await d3.csv("https://mich1eal.github.io/data/lake_data_pivoted.csv");
+  const rainSVG = d3.select("#rainGraph")
+    .append("svg")
+    .attr("width", totalWidth)
+    .attr("height", totalHeight);
 
+
+  const lakeData = await d3.csv("https://mich1eal.github.io/data/lake_data_pivoted.csv");
+  const slcRainData = await d3.csv("https://mich1eal.github.io/data/weather_slc_pivoted.csv");
+  const altaRainData = await d3.csv("https://mich1eal.github.io/data/weather_alta_pivoted.csv");
+
+
+//////////////////// Graph -  Lake
+//Axes
   lakeSVG.append("g")
     .attr("transform", "translate(" + margin.left + "," + (height + margin.top) + ")")
-    .call(xAxisLake)
+    .call(xAxis)
 
   lakeSVG.append("text")
     .attr("x", 0)
@@ -217,18 +222,47 @@ async function init() {
     .attr("text-anchor", "end")
     .text("Month →");
 
+//Plot
   lakeSVG.append("path")
     .datum(lakeData)
     .attr("fill", "none")
     .attr("stroke", "steelblue")
     .attr("stroke-width", 1.5)
     .attr("d", d3.line()
-      .x(function(d) { return margin.left + xLake(new Date(Date.UTC(2021, d.month-1, d.day, 0, 0, 0, 0))); })
+      .x(function(d) { return margin.left + x(new Date(Date.UTC(2021, d.month-1, d.day, 0, 0, 0, 0))); })
       .y(function(d) { return margin.top + yLake(parseFloat(d.average)); }));
 
-  var testDate = new Date(Date.UTC(2021, 1, 1));
-  console.log(testDate);
-  console.log(testDate.toUTCString());
+
+//////////////////// Graph - Rain
+//Axes
+  rainSVG.append("g")
+    .attr("transform", "translate(" + margin.left + "," + (height + margin.top) + ")")
+    .call(xAxis)
+
+  rainSVG.append("text")
+    .attr("x", 0)
+    .attr("y", margin.top - 15)
+    .text("↑ Precipitation (in)");
+
+  rainSVG.append("g")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
+    .call(yAxisRain)
+
+  rainSVG.append("text")
+    .attr("x", totalWidth - 10)
+    .attr("y", totalHeight - 10)
+    .attr("text-anchor", "end")
+    .text("Month →");
+
+//Plot
+  rainSVG.append("path")
+    .datum(slcRainData)
+    .attr("fill", "none")
+    .attr("stroke", "steelblue")
+    .attr("stroke-width", 1.5)
+    .attr("d", d3.line()
+      .x(function(d) { return margin.left + x(new Date(Date.UTC(2021, d.month-1, d.day, 0, 0, 0, 0))); })
+      .y(function(d) { return margin.top + yLake(parseFloat(d.prcp_average)); }));
 }
 </script>
 </body>
