@@ -200,6 +200,7 @@ async function init() {
   const slcRainData = await d3.csv("https://mich1eal.github.io/data/weather_slc_pivoted.csv");
   const altaRainData = await d3.csv("https://mich1eal.github.io/data/weather_alta_pivoted.csv");
 
+  console.log(slcRainData)
 
 //////////////////// Graph -  Lake
 //Axes
@@ -261,8 +262,38 @@ async function init() {
     .attr("stroke", "steelblue")
     .attr("stroke-width", 1.5)
     .attr("d", d3.line()
-      .x(function(d) { return margin.left + x(new Date(Date.UTC(2021, d.month-1, d.day, 0, 0, 0, 0))); })
-      .y(function(d) { return margin.top + yLake(parseFloat(d.prcp_average)); }));
+      .x(function(d) {return margin.left + x(new Date(Date.UTC(2021, d.month-1, d.day, 0, 0, 0, 0))); })
+      .y(function(d) {return margin.top + yRain(parseFloat(d.prcp_average)); }));
+  
+  rainSVG.append("path")
+    .datum(slcRainData)
+    .attr("fill", "none")
+    .attr("stroke", "lightsteelblue")
+    .style("stroke-dasharray", ("3, 3"))
+    .attr("stroke-width", 1.5)
+    .attr("d", d3.line()
+      .x(function(d) {return margin.left + x(new Date(Date.UTC(2021, d.month-1, d.day, 0, 0, 0, 0))); })
+      .y(function(d) {return margin.top + yRain(parseFloat(d.snow_average)); }));
+
+  rainSVG.append("path")
+    .datum(altaRainData)
+    .attr("fill", "none")
+    .attr("stroke", "orange")
+    .attr("stroke-width", 1.5)
+    .attr("d", d3.line()
+      .x(function(d) {return margin.left + x(new Date(Date.UTC(2021, d.month-1, d.day, 0, 0, 0, 0))); })
+      .y(function(d) {return margin.top + yRain(parseFloat(d.prcp_average)); }));
+  
+  rainSVG.append("path")
+    .datum(altaRainData)
+    .attr("fill", "none")
+    .attr("stroke", "darkorange")
+    .style("stroke-dasharray", ("3, 3"))
+    .attr("stroke-width", 1.5)
+    .attr("d", d3.line()
+      .x(function(d) {return margin.left + x(new Date(Date.UTC(2021, d.month-1, d.day, 0, 0, 0, 0))); })
+      .y(function(d) {return margin.top + yRain(parseFloat(d.snow_average)); }));
+
 }
 </script>
 </body>
