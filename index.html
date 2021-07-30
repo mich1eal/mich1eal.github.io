@@ -62,9 +62,7 @@
     opacity:  0;
   }
 
-\
 </style>
-
 
 <!-- html description of entire page -->
 
@@ -85,7 +83,6 @@
 
   <p class=fader id="scene3Text">Select a year to explore how the lake has changed each year. Hover over the graphs for additional information.    Display data: 
     <select id="selectButton"></select>
-
   </p>
 
   <div>
@@ -109,7 +106,6 @@ const totalWidth = 1200
 const totalHeight = 300
 const width = totalWidth - margin.left - margin.right;
 const height = totalHeight - margin.top - margin.bottom;
-
 
 // Domain for lakeGraph
 const lakeDomain = [new Date('2021-01-01'), new Date('2021-12-31')]
@@ -242,10 +238,7 @@ function updateGraphs(selectedOption, lakeData, slcRainData, altaRainData)
     .attr("d", d3.line()
       .x(function(d) {return margin.left + x(new Date(Date.UTC(2021, d.month-1, d.day, 0, 0, 0, 0))); })
       .y(function(d) {return margin.top + yRain(parseFloat(d["snow_" + selectedOption])); }));
-
-
 }
-
 
 function sceneForward()
 {
@@ -300,7 +293,6 @@ function changeScene(newScene)
   scene = newScene;
 }
 
-
 async function init() {
 
   const lakeData = await d3.csv("https://mich1eal.github.io/data/lake_data_pivoted.csv");
@@ -348,11 +340,6 @@ async function init() {
     .attr("d", d3.line()
       .x(function(d) { return margin.left + x(new Date(Date.UTC(2021, d.month-1, d.day, 0, 0, 0, 0))); })
       .y(function(d) { return margin.top + yLake(parseFloat(d.average)); }));
-
-
-
-
-
 
 //////////////////// Graph - Rain
 //Axes
@@ -423,7 +410,6 @@ async function init() {
     legend.append("text").attr("x", 20).attr("y", 0).text("SLC Airport (altitude: 4,226 ft)").style("font-size", "15px").attr("alignment-baseline","middle")
     legend.append("text").attr("x", 20).attr("y", 30).text("Alta Ski Resort (altitude: 8,530 ft").style("font-size", "15px").attr("alignment-baseline","middle")
 
-
 //annotations 
   rainSVG.append("g")
     .attr("id", "rainAnnonId")
@@ -458,7 +444,6 @@ async function init() {
   // add tooltip
 
 changeScene(0);
-
 }
 </script>
 </body>
