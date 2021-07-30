@@ -120,9 +120,15 @@ lakeSVG.append("path")
   .attr("stroke", "steelblue")
   .attr("stroke-width", 1.5)
   .attr("d", d3.line()
-    .x(function(d) { return new Date(d.monthday); })
+    .x(function(d) { return xLake(new Date(d.monthday)); })
     .y(function(d) { return yLake(parseFloat(d.average)); }));
-    
+
+
+var test = "2021-01-01";
+console.log(test);
+var testDate = Date.UTC("2021-01-01");
+console.log(testDate);
+console.log(testDate);  
 
 
 
